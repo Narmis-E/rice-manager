@@ -60,7 +60,7 @@ class window1(Gtk.Window):
       hb.pack_start(rices_button)
 
       about_button = Gtk.Button(label="☰")
-      about_button.override_font(Pango.font_description_from_string("Sans Serif 16"))
+      about_button.override_font(Pango.font_description_from_string("Sans Serif 14"))
       about_button.connect("clicked", self.show_about_dialog)
       hb.pack_end(about_button)
 
@@ -100,7 +100,7 @@ class window1(Gtk.Window):
       about_dialog.set_program_name("rice-manager")
       about_dialog.set_version("0.1.0")
       about_dialog.set_authors(["narmis"])
-      about_dialog.set_copyright("© 2023 narmis") #I originally wanted to create this as a TUI with pure bash or C++, but I decided on GTK because A: its cool and B: It works with python which has much nicer os parsing and filesystem libraries built in compared to C++.
+      about_dialog.set_copyright("© 2023 narmis")
       license_type = (
         "LICENSED UNDER LGPL_2_1\ninstructions:\nRice Manager is a graphical tool designed to manage dotfiles for your rices.\n"
         +"To add a rice, in the menu hit the 'New Rice' button\nand it will take you to a screen where you can add dotfiles.\n"
@@ -179,7 +179,7 @@ class window2(Gtk.Window):
       hb.pack_start(menu_button)
 
       about_button = Gtk.Button(label="☰")
-      about_button.override_font(Pango.font_description_from_string("Sans Serif 16"))
+      about_button.override_font(Pango.font_description_from_string("Sans Serif 14"))
       about_button.connect("clicked", self.show_about_dialog)
       hb.pack_end(about_button)
 
@@ -262,7 +262,7 @@ class window2(Gtk.Window):
           "View Your rices by clicking the view rice button in the menu",
       )
       notification.set_urgency(Notify.Urgency.NORMAL)
-      notification.set_timeout(200)  # Set the notification timeout (in milliseconds)
+      notification.set_timeout(2000)  # Set the notification timeout (in milliseconds)
       notification.show()
 
   def on_save_click(self, button):
@@ -371,7 +371,7 @@ class window3(Gtk.Window):
       hb.pack_start(menu_button)
 
       about_button = Gtk.Button(label="☰")
-      about_button.override_font(Pango.font_description_from_string("Sans Serif 16"))
+      about_button.override_font(Pango.font_description_from_string("Sans Serif 14"))
       about_button.connect("clicked", self.show_about_dialog)
       hb.pack_end(about_button)
       
@@ -502,7 +502,6 @@ class window3(Gtk.Window):
           or response == Gtk.ResponseType.CLOSE
       ):
           about_dialog.destroy()
-
 
 win1 = window1()
 win2 = window2()
