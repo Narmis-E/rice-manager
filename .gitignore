@@ -1,4 +1,4 @@
 usr/
 .DirIcon
-myapp.png
-rice-manager.desktop
+usr/share/icons/128x128/apps/myapp.png
+usr/share/applications/rice-manager.desktop
