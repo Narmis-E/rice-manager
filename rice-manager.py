@@ -98,7 +98,7 @@ class window1(Gtk.Window):
       about_dialog.set_transient_for(self.get_toplevel())
       about_dialog.set_modal(True)
       about_dialog.set_program_name("rice-manager")
-      about_dialog.set_version("0.1.0")
+      about_dialog.set_version("1.0.0")
       about_dialog.set_authors(["narmis"])
       about_dialog.set_copyright("© 2023 narmis")
       license_type = (
@@ -323,7 +323,7 @@ class window2(Gtk.Window):
       about_dialog.set_transient_for(self.get_toplevel())
       about_dialog.set_modal(True)
       about_dialog.set_program_name("rice-manager")
-      about_dialog.set_version("0.1.0")
+      about_dialog.set_version("1.0.0")
       about_dialog.set_authors(["narmis"])
       about_dialog.set_copyright("© 2023 narmis")
       license_type = (
@@ -477,7 +477,7 @@ class window3(Gtk.Window):
       about_dialog.set_transient_for(self.get_toplevel())
       about_dialog.set_modal(True)
       about_dialog.set_program_name("rice-manager")
-      about_dialog.set_version("0.1.0")
+      about_dialog.set_version("1.0.0")
       about_dialog.set_authors(["narmis"])
       about_dialog.set_copyright("© 2023 narmis")
       license_type = (
