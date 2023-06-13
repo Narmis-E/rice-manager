@@ -10,6 +10,7 @@ You can add and remove dotfiles in the add rice menu, specify a name for your ri
 Rice manager abides by the laws of ricing philosophy, where the user's home directory shouldn't be modified and the configuration for various window managers and applications should all be sourced from a singular location. Rice Manager is very useful for this reason, as implementing control over rices ensures that configs can't conflict and they don't need to be archived.
 
 ![rice-manager-showcase](https://github.com/Narmis-E/rice-manager/assets/109248529/f56d7f60-c265-4df7-9d11-440493af17da)
+Downloadable from the Releases tab.
 
 ## Why Though?
 Having created multiple linux rices myself, I noticed that is is quite an annoying process to manually switch between them and I also wanted an excuse to try and develop a actually useful program, with GTK comming to mind.
