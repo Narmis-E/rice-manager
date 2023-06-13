@@ -102,7 +102,7 @@ class window1(Gtk.Window):
       about_dialog.set_authors(["narmis"])
       about_dialog.set_copyright("© 2023 narmis")
       license_type = (
-        "LICENSED UNDER LGPL_2_1\ninstructions:\nRice Manager is a graphical tool designed to manage dotfiles for your rices.\n"
+        "LICENSED UNDER GPL_3\ninstructions:\nRice Manager is a graphical tool designed to manage dotfiles for your rices.\n"
         +"To add a rice, in the menu hit the 'New Rice' button\nand it will take you to a screen where you can add dotfiles.\n"
         +"To add dotfiles hit the '+' button\nand to remove dotfiles click on a dotfile entry and then hit the '-' button.\n"
         +"After adding a rice, you can either apply or remove it\nby clicking on the 'View Rices' button on the main menu.\n"
@@ -216,26 +216,28 @@ class window2(Gtk.Window):
       entry.grab_focus()
 
   def on_plus_click(self, button):
-        dialog = Gtk.FileChooserDialog(
-            "Select a Dotfile Folder",
-            None,
-            Gtk.FileChooserAction.SELECT_FOLDER,
-            (
-                Gtk.STOCK_CANCEL,
-                Gtk.ResponseType.CANCEL,
-                Gtk.STOCK_OPEN,
-                Gtk.ResponseType.OK,
-            ),
-        )
-        dialog.set_current_folder(GLib.get_home_dir())
-        dialog.set_local_only(False)  # Show directories from the whole file system
-        response = dialog.run()
-        if response == Gtk.ResponseType.OK:
-            folder_path = dialog.get_filename()
+    dialog = Gtk.FileChooserDialog(
+        "Select Dotfile Folders",
+        None,
+        Gtk.FileChooserAction.SELECT_FOLDER,
+        (
+            Gtk.STOCK_CANCEL,
+            Gtk.ResponseType.CANCEL,
+            Gtk.STOCK_OPEN,
+            Gtk.ResponseType.OK,
+        ),
+    )
+    dialog.set_select_multiple(True)
+    dialog.set_current_folder(GLib.get_home_dir())
+    dialog.set_local_only(False)  # Show directories from the whole file system
+    response = dialog.run()
+    if response == Gtk.ResponseType.OK:
+        folder_paths = dialog.get_filenames()
+        for folder_path in folder_paths:
             print("["+formatted_datetime+"]","[INFO]","Added:", folder_path)
             last_component = os.path.basename(folder_path)
             self.store.append([last_component, folder_path])
-        dialog.destroy()
+    dialog.destroy()
 
   def on_minus_click(self, button):
       selection = self.treeview.get_selection()
@@ -327,7 +329,7 @@ class window2(Gtk.Window):
       about_dialog.set_authors(["narmis"])
       about_dialog.set_copyright("© 2023 narmis")
       license_type = (
-        "LICENSED UNDER LGPL_2_1\ninstructions:\nRice Manager is a graphical tool designed to manage dotfiles for your rices.\n"
+        "LICENSED UNDER GPL_3\ninstructions:\nRice Manager is a graphical tool designed to manage dotfiles for your rices.\n"
         +"To add a rice, in the menu hit the 'New Rice' button\nand it will take you to a screen where you can add dotfiles.\n"
         +"To add dotfiles hit the '+' button\nand to remove dotfiles click on a dotfile entry and then hit the '-' button.\n"
         +"After adding a rice, you can either apply or remove it\nby clicking on the 'View Rices' button on the main menu.\n"
@@ -481,7 +483,7 @@ class window3(Gtk.Window):
       about_dialog.set_authors(["narmis"])
       about_dialog.set_copyright("© 2023 narmis")
       license_type = (
-        "LICENSED UNDER LGPL_2_1\ninstructions:\nRice Manager is a graphical tool designed to manage dotfiles for your rices.\n"
+        "LICENSED UNDER GPL_3\ninstructions:\nRice Manager is a graphical tool designed to manage dotfiles for your rices.\n"
         +"To add a rice, in the menu hit the 'New Rice' button\nand it will take you to a screen where you can add dotfiles.\n"
         +"To add dotfiles hit the '+' button\nand to remove dotfiles click on a dotfile entry and then hit the '-' button.\n"
         +"After adding a rice, you can either apply or remove it\nby clicking on the 'View Rices' button on the main menu.\n"
