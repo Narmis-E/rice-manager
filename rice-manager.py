@@ -424,12 +424,12 @@ class window3(Gtk.Window):
         rice_page.pack_start(self.treeview, True, True, 0)
 
         # Create the Apply button
-        apply_button = Gtk.Button(label="Apply")
+        apply_button = Gtk.Button(label="Apply Rice")
         apply_button.connect("clicked", self.on_apply_click, file_path)
         rice_page.pack_start(apply_button, False, False, 0)
 
         # Create the Remove button
-        remove_button = Gtk.Button(label="Remove")
+        remove_button = Gtk.Button(label="Remove Rice")
         remove_button.connect("clicked", self.on_remove_click, file_path)
         rice_page.pack_start(remove_button, False, False, 0)
 
