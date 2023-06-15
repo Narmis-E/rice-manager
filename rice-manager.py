@@ -75,9 +75,6 @@ class MainMenu(Gtk.Window):
     icon_path = "icons/rice-manager.png"
     Gtk.Window.set_default_icon_from_file(icon_path)
 
-    button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
-    menu_box.pack_start(button_box, False, False, 0)
-
     add_rice_button = Gtk.Button(label="Add Rice")
     add_rice_button.set_tooltip_text("Add a new 🍚")
     add_rice_button.connect("clicked", self.on_add_rice_click)
@@ -348,6 +345,10 @@ class ViewRices(Gtk.Window):
     about_button.connect("clicked", self.on_about_button_clicked)
     hb.pack_end(about_button)
 
+  def on_remove_symlink_clicked(self, checkbox):
+    state = checkbox.get_active()
+    self.removing_symlinks = state
+
   def on_about_button_clicked(self, button):
     show_about_dialog(self)
       
@@ -371,9 +372,10 @@ class ViewRices(Gtk.Window):
       rice_name = list(json_data.keys())[0]  # Get the rice name from the JSON data
 
       # Create a new rice page
-      rice_page = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
-      # Create a Gtk.Box to hold the label with padding
-      label_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+      rice_page = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+      label_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+      label_box.set_margin_top(10)
+      label_box.set_margin_bottom(10)
       label = Gtk.Label(label=rice_name+" 🍚")
       label_box.pack_start(label, False, False, 10)  # Adjust the padding here
       rice_page.pack_start(label_box, False, False, 0)
@@ -388,6 +390,11 @@ class ViewRices(Gtk.Window):
       column2 = Gtk.TreeViewColumn("Path", renderer2, text=1)
       self.treeview.append_column(column2)
 
+      scrolled_window = Gtk.ScrolledWindow()
+      scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+      rice_page.pack_start(scrolled_window, True, True, 0)
+      scrolled_window.add(self.treeview)
+
       # Iterate over the dotfiles in the rice
       dotfile_data = json_data[rice_name]
       for dotfile in dotfile_data:
@@ -395,17 +402,20 @@ class ViewRices(Gtk.Window):
           path = dotfile["path"]
           list_store.append([name, path])
 
-      rice_page.pack_start(self.treeview, True, True, 0)
-
       # Create the Apply button
       apply_button = Gtk.Button(label="Apply Rice")
       apply_button.connect("clicked", self.on_apply_click, file_path)
-      rice_page.pack_start(apply_button, False, False, 0)
+      label_box.pack_start(apply_button, False, False, 0)
 
       # Create the Remove button
       remove_button = Gtk.Button(label="Remove Rice")
-      remove_button.connect("clicked", self.on_remove_click, file_path)
-      rice_page.pack_start(remove_button, False, False, 0)
+      remove_button.connect("clicked", self.on_remove_click, file_path, dotfile_data)
+      label_box.pack_start(remove_button, False, False, 0)
+
+      remove_symlink= Gtk.CheckButton(label="Remove Symlinks")
+      remove_symlink.set_active(True)
+      remove_symlink.connect("toggled", self.on_remove_symlink_clicked)
+      label_box.pack_start(remove_symlink, False, False, 0)
 
       # Add the page to the notebook
       self.notebook.append_page(rice_page, Gtk.Label(label=rice_name))
@@ -415,6 +425,7 @@ class ViewRices(Gtk.Window):
     for row in model:
       dotfile_path = row[1]
       os.system(f"ln -sf {dotfile_path} ~/.config/")
+      print("["+formatted_datetime+"]", "[INFO]", f"🍚 Applied: {file_path}")
 
     dialog = Gtk.MessageDialog(
       transient_for=self,
@@ -426,15 +437,41 @@ class ViewRices(Gtk.Window):
     dialog.format_secondary_text("All dotfiles have been applied.")
     dialog.run()
     dialog.destroy()
-    print("["+formatted_datetime+"]", "[INFO]", f"🍚 Applied: {file_path}")
 
-  def on_remove_click(self, button, file_path):
-    # Remove the JSON file
-    os.remove(file_path)
-    print("["+formatted_datetime+"]","[INFO]",f"🍚 Removed: {file_path}")
-    current_page = self.notebook.get_current_page()
-    if current_page >= 0:
-      self.notebook.remove_page(current_page)
+  def on_remove_click(self, button, file_path, dotfile_data):
+    dialog = Gtk.MessageDialog(
+        transient_for=self,
+        flags=0,
+        message_type=Gtk.MessageType.WARNING,
+        buttons=Gtk.ButtonsType.YES_NO,
+        text="Confirm Removal",
+    )
+    dialog.format_secondary_text(
+        "Are you sure you want to remove the rice and its dotfiles?"
+    )
+    response = dialog.run()
+    dialog.destroy()
+    if response == Gtk.ResponseType.YES:
+        if getattr(self, 'removing_symlinks', True):
+            for dotfile in dotfile_data:
+                dotfile_name = dotfile["name"]
+                dotfile_path = os.path.expanduser(f"~/.config/{dotfile_name}")
+                if os.path.islink(dotfile_path):
+                    os.unlink(dotfile_path)
+                    print("["+formatted_datetime+"]", "[INFO]", f"🍚 Unlinked: {dotfile_path}")
+            # Remove the JSON file
+            os.remove(file_path)
+            print("["+formatted_datetime+"]", "[INFO]", f"🍚 Removed: {file_path}")
+            current_page = self.notebook.get_current_page()
+            if current_page >= 0:
+                self.notebook.remove_page(current_page)
+        else:
+            # Remove the JSON file
+            os.remove(file_path)
+            print("["+formatted_datetime+"]", "[INFO]", f"🍚 Removed: {file_path}")
+            current_page = self.notebook.get_current_page()
+            if current_page >= 0:
+                self.notebook.remove_page(current_page)
 
   def on_menu_click(self, button):
     global last_window_position
