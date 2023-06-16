@@ -12,6 +12,20 @@ current_datetime = datetime.datetime.now()
 formatted_datetime = current_datetime.strftime("%Y-%m-%d %H:%M:%S")
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 last_window_position = None
+applied_names = os.path.expanduser("~/.local/share/rice-manager/paths.txt")
+applied_rice = os.path.expanduser("~/.local/share/rice-manager/rice.txt")
+
+def get_current_rice(self):
+  with open(applied_rice, "r") as file:
+    current_rice = file.read().strip()
+  return current_rice
+
+def apply_css():
+    css_provider = Gtk.CssProvider()
+    css_provider.load_from_path("style.css")
+    screen = Gdk.Screen.get_default()
+    context = Gtk.StyleContext()
+    context.add_provider_for_screen(screen, css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
 def configure_header_bar(self):
   hb = Gtk.HeaderBar()
@@ -57,6 +71,7 @@ class MainMenu(Gtk.Window):
     self.set_size_request(600, 500)
     self.set_border_width(5)
     hb = configure_header_bar(self)
+    self.set_type_hint(Gdk.WindowTypeHint.DIALOG) # makes the window floating
 
     # Create a box to hold the buttons and align it to the center
     menu_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
@@ -76,12 +91,13 @@ class MainMenu(Gtk.Window):
     Gtk.Window.set_default_icon_from_file(icon_path)
 
     add_rice_button = Gtk.Button(label="Add Rice")
-    add_rice_button.set_tooltip_text("Add a new 🍚")
+    add_rice_button.set_tooltip_text("Add a new Rice")
+    add_rice_button.set_name("add-rice-button")
     add_rice_button.connect("clicked", self.on_add_rice_click)
     hb.pack_start(add_rice_button)
 
     rices_button = Gtk.Button(label="View Rices")
-    rices_button.set_tooltip_text("View Your 🍚")
+    rices_button.set_tooltip_text("View Your Rices")
     rices_button.connect("clicked", self.on_rices_click)
     hb.pack_start(rices_button)
 
@@ -116,11 +132,12 @@ class MainMenu(Gtk.Window):
           flags=0,
           message_type=Gtk.MessageType.INFO,
           buttons=Gtk.ButtonsType.OK,
-          text="No 🍚 Found!",
+          text="No Rices Found!",
       )
       dialog.format_secondary_text("Please add a rice")
       dialog.run()
       dialog.destroy()
+  apply_css()
 
 # Add Rice Window
 class AddRices(Gtk.Window):
@@ -129,6 +146,7 @@ class AddRices(Gtk.Window):
     self.set_size_request(600, 500)
     self.set_border_width(5)
     hb = configure_header_bar(self)
+    self.set_type_hint(Gdk.WindowTypeHint.DIALOG) # makes the window floating
 
     # Create a grid to hold the buttons
     grid = Gtk.Grid()
@@ -163,7 +181,7 @@ class AddRices(Gtk.Window):
 
     # save button
     save_button = Gtk.Button(label="Save")
-    save_button.set_tooltip_text("Remove Selected Dotfile Folder")
+    save_button.set_tooltip_text("Save Rice")
     save_button.connect("clicked", self.on_save_click)
     button_box.pack_end(
         save_button, False, False, 0
@@ -278,7 +296,7 @@ class AddRices(Gtk.Window):
         buttons=Gtk.ButtonsType.OK,
         text="No Rice Name Entered",
       )
-      dialog.format_secondary_text("Please enter a name for your lovely 🍚")
+      dialog.format_secondary_text("Please enter a name for your lovely rice")
       dialog.run()
       dialog.destroy()
     elif len(self.store) == 0:
@@ -289,7 +307,7 @@ class AddRices(Gtk.Window):
         buttons=Gtk.ButtonsType.OK,
         text="No Dotfiles Added",
       )
-      dialog.format_secondary_text("Please add dotfiles to your lovely 🍚")
+      dialog.format_secondary_text("Please add dotfiles to your lovely rice")
       dialog.run()
       dialog.destroy()
     else:
@@ -337,6 +355,7 @@ class ViewRices(Gtk.Window):
     self.set_size_request(600, 500)
     self.set_border_width(5)
     hb = configure_header_bar(self)
+    self.set_type_hint(Gdk.WindowTypeHint.DIALOG) # makes the window floating
     self.notebook = Gtk.Notebook()
     self.add(self.notebook)
     self.update_notebook()  # Update the notebook initially
@@ -381,6 +400,8 @@ class ViewRices(Gtk.Window):
           json_data = json.load(file)
       rice_name = list(json_data.keys())[0]  # Get the rice name from the JSON data
 
+      
+
       # Create a new rice page
       rice_page = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
       label_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
@@ -416,15 +437,19 @@ class ViewRices(Gtk.Window):
 
       # Create the Apply button
       apply_button = Gtk.Button(label="Apply Rice")
+      apply_button.set_tooltip_text("Apply Rice")
+      apply_button.set_name("apply-button-name")
       apply_button.connect("clicked", self.on_apply_click, file_path)
       label_box.pack_start(apply_button, False, False, 0)
 
       # Create the Remove button
       remove_button = Gtk.Button(label="Remove Rice")
+      remove_button.set_tooltip_text("Remove Rice")
       remove_button.connect("clicked", self.on_remove_click, file_path, dotfile_data)
       label_box.pack_start(remove_button, False, False, 0)
 
       remove_symlink= Gtk.CheckButton(label="Remove Symlinks")
+      remove_symlink.set_tooltip_text("Unlinks the Rices Symlinks Upon Removal")
       remove_symlink.set_active(True)
       remove_symlink.connect("toggled", self.on_remove_symlink_clicked)
       label_box.pack_start(remove_symlink, False, False, 0)
@@ -445,11 +470,34 @@ class ViewRices(Gtk.Window):
     return False
 
   def on_apply_click(self, button, file_path):
+    with open(applied_names, "r") as file:
+      for line in file:
+        os.system(f"unlink ~/.config/{line}")
+    with open(applied_names, "w") as paths_file:
+      paths_file.write("")
     model = self.treeview.get_model()
-    for row in model:
-      dotfile_path = row[1]
-      os.system(f"ln -sf {dotfile_path} ~/.config/")
-      print("["+formatted_datetime+"]", "[INFO]", f"🍚 Applied: {file_path}")
+    current_page = self.notebook.get_current_page()
+    rice_name = self.notebook.get_tab_label_text(self.notebook.get_nth_page(current_page))
+    current_rice = os.path.expanduser(f"~/.local/share/rice-manager/rices/{rice_name}.json")
+    with open(current_rice, "r") as file:
+      data = json.load(file)
+    dotfile_data = data[rice_name]
+    if not os.path.isfile(applied_names):
+        with open(paths_path, "w"):
+            pass
+    with open(applied_names, "a") as paths_file:
+      for dotfile in dotfile_data:
+        dotfile_name = dotfile["name"]
+        dotfile_path = dotfile["path"]
+        paths_file.write(dotfile_name + "\n")
+        os.system(f"ln -sf {dotfile_path} ~/.config/")
+        print("["+formatted_datetime+"]", "[INFO]", f" Applied: {dotfile_path}")
+    if not os.path.isfile(applied_rice):
+      with open(applied_rice, "w") as file:
+        file.write(rice_name)
+    else:
+      with open(applied_rice, "w") as file:
+        file.write(rice_name)
 
     dialog = Gtk.MessageDialog(
       transient_for=self,
@@ -482,17 +530,21 @@ class ViewRices(Gtk.Window):
                 dotfile_path = os.path.expanduser(f"~/.config/{dotfile_name}")
                 if os.path.islink(dotfile_path):
                     os.unlink(dotfile_path)
-                    print("["+formatted_datetime+"]", "[INFO]", f"🍚 Unlinked: {dotfile_path}")
+                    print("["+formatted_datetime+"]", "[INFO]", f" Unlinked: {dotfile_path}")
             # Remove the JSON file
             os.remove(file_path)
-            print("["+formatted_datetime+"]", "[INFO]", f"🍚 Removed: {file_path}")
+            print("["+formatted_datetime+"]", "[INFO]", f" Removed: {file_path}")
+            with open(applied_rice, "w") as file:
+              file.write("")
+            with open(applied_names, "w") as file:
+              file.write("")
             current_page = self.notebook.get_current_page()
             if current_page >= 0:
                 self.notebook.remove_page(current_page)
         else:
             # Remove the JSON file
             os.remove(file_path)
-            print("["+formatted_datetime+"]", "[INFO]", f"🍚 Removed: {file_path}")
+            print("["+formatted_datetime+"]", "[INFO]", f" Removed: {file_path}")
             current_page = self.notebook.get_current_page()
             if current_page >= 0:
                 self.notebook.remove_page(current_page)
