@@ -6,7 +6,7 @@ import datetime
 import gi
 gi.require_version("Gtk", "3.0")
 gi.require_version("Notify", "0.7")
-from gi.repository import Gtk, GLib, Pango, Notify, GdkPixbuf
+from gi.repository import Gtk, Gdk, GLib, Pango, Notify, GdkPixbuf
 
 current_datetime = datetime.datetime.now()
 formatted_datetime = current_datetime.strftime("%Y-%m-%d %H:%M:%S")
@@ -302,17 +302,27 @@ class AddRices(Gtk.Window):
       json_data = json.dumps(rice_data, indent=4)
 
       # Create the directory if it doesn't exist
-      directory = os.path.expanduser("~/.local/share/rice-manager/rices/")
-      if not os.path.exists(directory):
-          os.makedirs(directory)
+      rice_directory = os.path.expanduser("~/.local/share/rice-manager/rices/")
+      backup_directory = os.path.expanduser("~/.local/share/rice-manager/backup/")
+      if not os.path.exists(rice_directory):
+        os.makedirs(rice_directory)
+      if not os.path.exists(backup_directory):
+        os.makedirs(backup_directory)
 
       # Generate the file path with rice_name in the file name
       file_name = f"{rice_name}.json"
-      file_path = os.path.join(directory, file_name)
+      file_path = os.path.join(rice_directory, file_name)
 
       # Write the JSON data to the file
       with open(file_path, "w") as file:
-          file.write(json_data)
+        file.write(json_data)
+      
+      for row in self.store:
+        name = row[0]
+        default = os.path.expanduser(f"~/.config/{name}")
+        if os.path.exists(default):
+          destination = os.path.join(backup_directory, name)
+          os.system(f"cp -r {default} {destination}")
 
       print("["+formatted_datetime+"]","[INFO]",f"JSON data written to {file_path}")
       self.show_notification()
@@ -390,6 +400,8 @@ class ViewRices(Gtk.Window):
       column2 = Gtk.TreeViewColumn("Path", renderer2, text=1)
       self.treeview.append_column(column2)
 
+      self.treeview.connect("button-press-event", self.on_treeview_double_click)
+
       scrolled_window = Gtk.ScrolledWindow()
       scrolled_window.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
       rice_page.pack_start(scrolled_window, True, True, 0)
@@ -419,6 +431,18 @@ class ViewRices(Gtk.Window):
 
       # Add the page to the notebook
       self.notebook.append_page(rice_page, Gtk.Label(label=rice_name))
+
+  def on_treeview_double_click(self, treeview, event):
+    if event.type == Gdk.EventType.DOUBLE_BUTTON_PRESS and event.button == 1:
+      # Perform the desired action on double-click
+      selection = treeview.get_selection()
+      model, treeiter = selection.get_selected()
+      if tree_iter is not None:
+        # Get the selected row data and perform the desired action
+        path = model[treeiter][1]
+        os.system(f"xdg-open {path}")
+    # Make sure to propagate the event to other handlers
+    return False
 
   def on_apply_click(self, button, file_path):
     model = self.treeview.get_model()
