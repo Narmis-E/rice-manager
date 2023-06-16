@@ -1,0 +1,15 @@
+* {
+  text-shadow: none;
+}
+
+#add-rice-button {
+  border-width: 0;
+  background: cornflowerblue;
+  color: white;
+}
+
+#apply-button-name {
+  border-width: 0;
+  background: cornflowerblue;
+  color: white;
+}
