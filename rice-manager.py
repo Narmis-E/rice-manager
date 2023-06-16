@@ -39,7 +39,7 @@ def show_about_dialog(self):
   about_dialog.set_transient_for(self.get_toplevel())
   about_dialog.set_modal(True)
   about_dialog.set_program_name("rice-manager")
-  about_dialog.set_version("1.0.3")
+  about_dialog.set_version("1.0.4")
   about_dialog.set_authors(["narmis"])
   about_dialog.set_copyright("© 2023 narmis")
   license_type = (
@@ -71,7 +71,7 @@ class MainMenu(Gtk.Window):
     self.set_size_request(600, 500)
     self.set_border_width(5)
     hb = configure_header_bar(self)
-    self.set_type_hint(Gdk.WindowTypeHint.DIALOG) # makes the window floating
+    #self.set_type_hint(Gdk.WindowTypeHint.DIALOG) # makes the window floating
 
     # Create a box to hold the buttons and align it to the center
     menu_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
@@ -146,7 +146,7 @@ class AddRices(Gtk.Window):
     self.set_size_request(600, 500)
     self.set_border_width(5)
     hb = configure_header_bar(self)
-    self.set_type_hint(Gdk.WindowTypeHint.DIALOG) # makes the window floating
+    #self.set_type_hint(Gdk.WindowTypeHint.DIALOG) # makes the window floating
 
     # Create a grid to hold the buttons
     grid = Gtk.Grid()
@@ -355,7 +355,7 @@ class ViewRices(Gtk.Window):
     self.set_size_request(600, 500)
     self.set_border_width(5)
     hb = configure_header_bar(self)
-    self.set_type_hint(Gdk.WindowTypeHint.DIALOG) # makes the window floating
+    #self.set_type_hint(Gdk.WindowTypeHint.DIALOG) # makes the window floating
     self.notebook = Gtk.Notebook()
     self.add(self.notebook)
     self.update_notebook()  # Update the notebook initially
