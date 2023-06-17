@@ -470,6 +470,10 @@ class ViewRices(Gtk.Window):
     return False
 
   def on_apply_click(self, button, file_path):
+    if not os.path.isfile(applied_names):
+        with open(paths_path, "w"):
+	        file.write("")
+        pass  
     with open(applied_names, "r") as file:
       for line in file:
         os.system(f"unlink ~/.config/{line}")
@@ -482,9 +486,6 @@ class ViewRices(Gtk.Window):
     with open(current_rice, "r") as file:
       data = json.load(file)
     dotfile_data = data[rice_name]
-    if not os.path.isfile(applied_names):
-        with open(paths_path, "w"):
-            pass
     with open(applied_names, "a") as paths_file:
       for dotfile in dotfile_data:
         dotfile_name = dotfile["name"]
