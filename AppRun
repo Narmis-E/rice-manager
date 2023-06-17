@@ -4,4 +4,4 @@
 cd "$(dirname "$0")"
 
 # Execute the Python script using the system's Python interpreter
-/usr/bin/python3 rice-manager.py
+usr/bin/python3.8 rice-manager.py
