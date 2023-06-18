@@ -24,20 +24,21 @@ def get_current_rice(self):
   return current_rice
 
 def on_theme_switch(notebook, page, page_num):
-  if not os.path.isfile(applied_theme):
-    with open(applied_theme, "w") as file:
-      file.write("")
-    pass
-  global previous_page_num
-  if previous_page_num != -1 and previous_page_num != page_num:
-    current_theme_label = notebook.get_tab_label_text(page)
-    settings = Gtk.Settings.get_default()
-    settings.set_property("gtk-theme-name", current_theme_label)
-    os.system(f"gsettings set org.gnome.desktop.interface gtk-theme {current_theme_label}")
-    print("["+formatted_datetime+"]", "[INFO]", f"GTK Theme Changed to {current_theme_label}")
-    with open(applied_theme, "w") as file:
-      file.write(current_theme_label)
-  previous_page_num = page_num
+    if not os.path.isfile(applied_theme):
+        with open(applied_theme, "w") as file:
+            file.write("")
+        pass
+    global previous_page_num
+    if previous_page_num != -1 and previous_page_num != page_num:
+        current_theme_label = notebook.get_tab_label_text(page)
+        current_theme_label = current_theme_label.strip('"')  # Remove quotation marks
+        settings = Gtk.Settings.get_default()
+        settings.set_property("gtk-theme-name", current_theme_label)
+        os.system(f"gsettings set org.gnome.desktop.interface gtk-theme {current_theme_label}")
+        print("["+formatted_datetime+"]", "[INFO]", f"GTK Theme Changed to {current_theme_label}")
+        with open(applied_theme, "w") as file:
+            file.write(current_theme_label)
+    previous_page_num = page_num
 
 def apply_css():
     css_provider = Gtk.CssProvider()
@@ -158,6 +159,7 @@ class MainMenu(Gtk.Window):
     themes_box.pack_start(notebook, True, True, 0)
 
     current_theme = get_current_theme().strip('"')  # Remove quotation marks
+    print(current_theme)
     for theme in available_themes:
       tab_label = Gtk.Label(label=theme)
       notebook.append_page(Gtk.Box(), tab_label)
@@ -170,6 +172,7 @@ class MainMenu(Gtk.Window):
     for theme in available_themes:
       tab_label = Gtk.Label(label=theme)
       notebook.append_page(Gtk.Box(), tab_label)
+
     # Add the image and title to the center of every page
     for page_num in range(notebook.get_n_pages()):
       page = notebook.get_nth_page(page_num)
