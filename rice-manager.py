@@ -6,7 +6,8 @@ import datetime
 import gi
 gi.require_version("Gtk", "3.0")
 gi.require_version("Notify", "0.7")
-from gi.repository import Gtk, Gdk, GLib, Pango, Notify, GdkPixbuf
+from gi.repository import Gtk, Gdk, Gio, GLib, Pango, Notify, GdkPixbuf
+from pathlib import Path
 
 current_datetime = datetime.datetime.now()
 formatted_datetime = current_datetime.strftime("%Y-%m-%d %H:%M:%S")
@@ -14,11 +15,29 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 last_window_position = None
 applied_names = os.path.expanduser("~/.local/share/rice-manager/paths.txt")
 applied_rice = os.path.expanduser("~/.local/share/rice-manager/rice.txt")
+applied_theme = os.path.expanduser("~/.local/share/rice-manager/theme.txt")
+previous_page_num = -1
 
 def get_current_rice(self):
   with open(applied_rice, "r") as file:
     current_rice = file.read().strip()
   return current_rice
+
+def on_theme_switch(notebook, page, page_num):
+  if not os.path.isfile(applied_theme):
+    with open(applied_theme, "w") as file:
+      file.write("")
+    pass
+  global previous_page_num
+  if previous_page_num != -1 and previous_page_num != page_num:
+    current_theme_label = notebook.get_tab_label_text(page)
+    settings = Gtk.Settings.get_default()
+    settings.set_property("gtk-theme-name", current_theme_label)
+    os.system(f"gsettings set org.gnome.desktop.interface gtk-theme {current_theme_label}")
+    print("["+formatted_datetime+"]", "[INFO]", f"GTK Theme Changed to {current_theme_label}")
+    with open(applied_theme, "w") as file:
+      file.write(current_theme_label)
+  previous_page_num = page_num
 
 def apply_css():
     css_provider = Gtk.CssProvider()
@@ -33,6 +52,45 @@ def configure_header_bar(self):
   hb.props.title = "Rice Manager"
   self.set_titlebar(hb)
   return hb
+
+def get_current_theme():
+    settings = Gtk.Settings.get_default()
+    return settings.get_property("gtk-theme-name")
+
+def list_gtk_themes():
+    builtin_themes = [
+        theme[:-1]
+        for theme in Gio.resources_enumerate_children(
+            "/org/gtk/libgtk/theme", Gio.ResourceFlags.NONE
+        )
+    ]
+
+    theme_search_dirs = [
+        Path(data_dir) / "themes" for data_dir in GLib.get_system_data_dirs()
+    ]
+    theme_search_dirs.append(Path(GLib.get_user_data_dir()) / "themes")
+    theme_search_dirs.append(Path(GLib.get_home_dir()) / ".themes")
+    fs_themes = []
+
+    for theme_search_dir in theme_search_dirs:
+        if not theme_search_dir.exists():
+            continue
+
+        for theme_dir in theme_search_dir.iterdir():
+            if not theme_dir.is_dir():
+                continue
+
+            css_files = theme_dir.glob("**/*.css")
+            if any(
+                "gtk.css" in file.name or "gtk-dark.css" in file.name
+                for file in css_files
+            ):
+                fs_themes.append(theme_dir.name)
+
+    return sorted(set(builtin_themes + fs_themes))
+
+if __name__ == "__main__":
+    print("Available themes: %s" % ", ".join(list_gtk_themes()))
 
 def show_about_dialog(self):
   about_dialog = Gtk.AboutDialog()
@@ -71,21 +129,13 @@ class MainMenu(Gtk.Window):
     self.set_size_request(600, 500)
     self.set_border_width(5)
     hb = configure_header_bar(self)
-    #self.set_type_hint(Gdk.WindowTypeHint.DIALOG) # makes the window floating
+    themes_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+    self.add(themes_box)
 
-    # Create a box to hold the buttons and align it to the center
-    menu_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
-    align = Gtk.Alignment.new(0.5, 0.5, 0, 0)
-    align.add(menu_box)
-    self.add(align)
-
-    title = Gtk.Label(label="Rice Manager")
-    title.override_font(Pango.font_description_from_string("Sans Serif 17"))
-    menu_box.pack_start(title, False, False, 0)
-
-    image = Gtk.Image()
-    image.set_from_file("icons/rice-manager-translucent.png")
-    menu_box.pack_start(image, False, False, 0)
+    available_themes = list_gtk_themes()
+    notebook = Gtk.Notebook()
+    notebook.set_tab_pos(Gtk.PositionType.LEFT)
+    notebook.set_vexpand(True)
 
     icon_path = "icons/rice-manager.png"
     Gtk.Window.set_default_icon_from_file(icon_path)
@@ -105,6 +155,42 @@ class MainMenu(Gtk.Window):
     about_button.override_font(Pango.font_description_from_string("Sans Serif 14"))
     about_button.connect("clicked", self.on_about_button_clicked)
     hb.pack_end(about_button)
+
+    themes_box.pack_start(notebook, True, True, 0)
+    current_theme = os.system("gsettings get org.gnome.desktop.interface gtk-theme")
+    if current_theme in available_themes:
+      page_num = available_themes.index(current_theme)
+      notebook.set_current_page(page_num)
+
+    for theme in available_themes:
+      tab_label = Gtk.Label(label=theme)
+      notebook.append_page(Gtk.Box(), tab_label)
+    # Add the image and title to the center of every page
+    for page_num in range(notebook.get_n_pages()):
+      page = notebook.get_nth_page(page_num)
+      page_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+      page.add(page_box)
+
+      # Create a grid to hold the image and title
+      grid = Gtk.Grid()
+      page_box.pack_start(grid, True, True, 0)
+
+      title = Gtk.Label(label="Rice Manager")
+      title.override_font(Pango.font_description_from_string("Sans Serif 17"))
+      image = Gtk.Image()
+      image.set_from_file("icons/rice-manager-translucent.png")
+
+      # Add the image and title to the grid
+      grid.attach(image, 0, 0, 1, 1)
+      grid.attach(title, 0, 1, 1, 1)
+
+      # Set the grid properties to center the contents
+      grid.set_hexpand(True)
+      grid.set_vexpand(True)
+      grid.set_halign(Gtk.Align.CENTER)
+      grid.set_valign(Gtk.Align.CENTER)
+    
+      notebook.connect("switch-page", on_theme_switch)
 
   def on_about_button_clicked(self, button):
     show_about_dialog(self)
@@ -321,7 +407,7 @@ class AddRices(Gtk.Window):
 
       # Create the directory if it doesn't exist
       rice_directory = os.path.expanduser("~/.local/share/rice-manager/rices/")
-      backup_directory = os.path.expanduser("~/.local/share/rice-manager/backup/")
+      backup_directory = os.path.expanduser("~/.local/share/rice-manager/dotfile-backup/")
       if not os.path.exists(rice_directory):
         os.makedirs(rice_directory)
       if not os.path.exists(backup_directory):
