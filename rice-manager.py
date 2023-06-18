@@ -136,7 +136,8 @@ class MainMenu(Gtk.Window):
     self.add(themes_box)
     notebook = Gtk.Notebook()
     notebook.set_tab_pos(Gtk.PositionType.LEFT)
-    notebook.set_vexpand(True)
+    notebook.set_vexpand(False)
+    notebook.set_scrollable(True)
 
     icon_path = "icons/rice-manager.png"
     Gtk.Window.set_default_icon_from_file(icon_path)
