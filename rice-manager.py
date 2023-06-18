@@ -129,7 +129,7 @@ def show_about_dialog(self):
 class MainMenu(Gtk.Window):
   def __init__(self):
     super().__init__(title="Rice Manager")
-    self.set_size_request(600, 500)
+    self.set_size_request(800, 500)
     self.set_border_width(5)
     hb = configure_header_bar(self)
     themes_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
@@ -235,7 +235,7 @@ class MainMenu(Gtk.Window):
 class AddRices(Gtk.Window):
   def __init__(self):
     super().__init__(title="Rice Manager")
-    self.set_size_request(600, 500)
+    self.set_size_request(800, 500)
     self.set_border_width(5)
     hb = configure_header_bar(self)
     #self.set_type_hint(Gdk.WindowTypeHint.DIALOG) # makes the window floating
@@ -444,7 +444,7 @@ class AddRices(Gtk.Window):
 class ViewRices(Gtk.Window):
   def __init__(self):
     super().__init__(title="Rice Manager")
-    self.set_size_request(600, 500)
+    self.set_size_request(800, 500)
     self.set_border_width(5)
     hb = configure_header_bar(self)
     #self.set_type_hint(Gdk.WindowTypeHint.DIALOG) # makes the window floating
