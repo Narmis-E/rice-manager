@@ -155,12 +155,17 @@ class MainMenu(Gtk.Window):
     about_button.override_font(Pango.font_description_from_string("Sans Serif 14"))
     about_button.connect("clicked", self.on_about_button_clicked)
     hb.pack_end(about_button)
-
     themes_box.pack_start(notebook, True, True, 0)
-    current_theme = os.system("gsettings get org.gnome.desktop.interface gtk-theme")
-    if current_theme in available_themes:
-      page_num = available_themes.index(current_theme)
-      notebook.set_current_page(page_num)
+
+    current_theme = get_current_theme().strip('"')  # Remove quotation marks
+    for theme in available_themes:
+      tab_label = Gtk.Label(label=theme)
+      notebook.append_page(Gtk.Box(), tab_label)
+
+      # Set the current page to the current theme
+      if theme.strip('"') == current_theme:  # Remove quotation marks
+        page_num = available_themes.index(theme)
+        notebook.set_current_page(page_num)
 
     for theme in available_themes:
       tab_label = Gtk.Label(label=theme)
