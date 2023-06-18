@@ -24,21 +24,20 @@ def get_current_rice(self):
   return current_rice
 
 def on_theme_switch(notebook, page, page_num):
-    if not os.path.isfile(applied_theme):
-        with open(applied_theme, "w") as file:
-            file.write("")
-        pass
-    global previous_page_num
-    if previous_page_num != -1 and previous_page_num != page_num:
-        current_theme_label = notebook.get_tab_label_text(page)
-        current_theme_label = current_theme_label.strip('"')  # Remove quotation marks
-        settings = Gtk.Settings.get_default()
-        settings.set_property("gtk-theme-name", current_theme_label)
-        os.system(f"gsettings set org.gnome.desktop.interface gtk-theme {current_theme_label}")
-        print("["+formatted_datetime+"]", "[INFO]", f"GTK Theme Changed to {current_theme_label}")
-        with open(applied_theme, "w") as file:
-            file.write(current_theme_label)
-    previous_page_num = page_num
+  if not os.path.isfile(applied_theme):
+    with open(applied_theme, "w") as file:
+      file.write("")
+    pass
+  global previous_page_num
+  if previous_page_num != -1 and previous_page_num != page_num:
+    current_theme_label = notebook.get_tab_label_text(page)
+    settings = Gtk.Settings.get_default()
+    settings.set_property("gtk-theme-name", current_theme_label)
+    os.system(f"gsettings set org.gnome.desktop.interface gtk-theme {current_theme_label}")
+    print("["+formatted_datetime+"]", "[INFO]", f"GTK Theme Changed to {current_theme_label}")
+    with open(applied_theme, "w") as file:
+      file.write(current_theme_label)
+  previous_page_num = page_num
 
 def apply_css():
     css_provider = Gtk.CssProvider()
@@ -57,6 +56,9 @@ def configure_header_bar(self):
 def get_current_theme():
     settings = Gtk.Settings.get_default()
     return settings.get_property("gtk-theme-name")
+
+def set_current_theme_page(notebook, current_theme_index):
+    notebook.set_current_page(current_theme_index)
 
 def list_gtk_themes():
     builtin_themes = [
@@ -90,8 +92,8 @@ def list_gtk_themes():
 
     return sorted(set(builtin_themes + fs_themes))
 
-if __name__ == "__main__":
-    print("Available themes: %s" % ", ".join(list_gtk_themes()))
+#if __name__ == "__main__":
+  #print("Available themes: %s" % ", ".join(list_gtk_themes()))
 
 def show_about_dialog(self):
   about_dialog = Gtk.AboutDialog()
@@ -132,8 +134,6 @@ class MainMenu(Gtk.Window):
     hb = configure_header_bar(self)
     themes_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
     self.add(themes_box)
-
-    available_themes = list_gtk_themes()
     notebook = Gtk.Notebook()
     notebook.set_tab_pos(Gtk.PositionType.LEFT)
     notebook.set_vexpand(True)
@@ -158,47 +158,45 @@ class MainMenu(Gtk.Window):
     hb.pack_end(about_button)
     themes_box.pack_start(notebook, True, True, 0)
 
-    current_theme = get_current_theme().strip('"')  # Remove quotation marks
-    print(current_theme)
-    for theme in available_themes:
-      tab_label = Gtk.Label(label=theme)
-      notebook.append_page(Gtk.Box(), tab_label)
-
-      # Set the current page to the current theme
-      if theme.strip('"') == current_theme:  # Remove quotation marks
-        page_num = available_themes.index(theme)
-        notebook.set_current_page(page_num)
+    available_themes = list_gtk_themes()
+    current_theme = get_current_theme()
+    current_theme_index = None
 
     for theme in available_themes:
-      tab_label = Gtk.Label(label=theme)
-      notebook.append_page(Gtk.Box(), tab_label)
+        tab_label = Gtk.Label(label=theme)
+        notebook.append_page(Gtk.Box(), tab_label)
+        if theme == current_theme:
+            current_theme_index = notebook.page_num(notebook.get_nth_page(-1))
 
     # Add the image and title to the center of every page
     for page_num in range(notebook.get_n_pages()):
-      page = notebook.get_nth_page(page_num)
-      page_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
-      page.add(page_box)
+        page = notebook.get_nth_page(page_num)
+        page_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        page.add(page_box)
 
-      # Create a grid to hold the image and title
-      grid = Gtk.Grid()
-      page_box.pack_start(grid, True, True, 0)
+        # Create a grid to hold the image and title
+        grid = Gtk.Grid()
+        page_box.pack_start(grid, True, True, 0)
 
-      title = Gtk.Label(label="Rice Manager")
-      title.override_font(Pango.font_description_from_string("Sans Serif 17"))
-      image = Gtk.Image()
-      image.set_from_file("icons/rice-manager-translucent.png")
+        title = Gtk.Label(label="Rice Manager")
+        title.override_font(Pango.font_description_from_string("Sans Serif 17"))
+        image = Gtk.Image()
+        image.set_from_file("icons/rice-manager-translucent.png")
 
-      # Add the image and title to the grid
-      grid.attach(image, 0, 0, 1, 1)
-      grid.attach(title, 0, 1, 1, 1)
+        # Add the image and title to the grid
+        grid.attach(image, 0, 0, 1, 1)
+        grid.attach(title, 0, 1, 1, 1)
 
-      # Set the grid properties to center the contents
-      grid.set_hexpand(True)
-      grid.set_vexpand(True)
-      grid.set_halign(Gtk.Align.CENTER)
-      grid.set_valign(Gtk.Align.CENTER)
-    
-      notebook.connect("switch-page", on_theme_switch)
+        # Set the grid properties to center the contents
+        grid.set_hexpand(True)
+        grid.set_vexpand(True)
+        grid.set_halign(Gtk.Align.CENTER)
+        grid.set_valign(Gtk.Align.CENTER)
+
+    # Set the current theme page as active using GLib idle function
+    if current_theme_index is not None:
+        GLib.idle_add(set_current_theme_page, notebook, current_theme_index)
+    notebook.connect("switch-page", on_theme_switch)
 
   def on_about_button_clicked(self, button):
     show_about_dialog(self)
