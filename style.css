@@ -8,6 +8,12 @@
   color: white;
 }
 
+#save-button {
+  border-width: 0;
+  background: cornflowerblue;
+  color: white;
+}
+
 #apply-button-name {
   border-width: 0;
   background: cornflowerblue;
