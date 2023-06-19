@@ -16,28 +16,41 @@ last_window_position = None
 applied_names = os.path.expanduser("~/.local/share/rice-manager/paths.txt")
 applied_rice = os.path.expanduser("~/.local/share/rice-manager/rice.txt")
 applied_theme = os.path.expanduser("~/.local/share/rice-manager/theme.txt")
-previous_page_num = -1
 
 def get_current_rice(self):
   with open(applied_rice, "r") as file:
     current_rice = file.read().strip()
   return current_rice
 
+def set_current_theme_page(notebook, current_theme_index):
+    notebook.set_current_page(current_theme_index)
+
 def on_theme_switch(notebook, page, page_num):
-  if not os.path.isfile(applied_theme):
-    with open(applied_theme, "w") as file:
-      file.write("")
-    pass
   global previous_page_num
+  if not os.path.isfile(applied_theme):
+      with open(applied_theme, "w") as file:
+          file.write("")
+      pass
   if previous_page_num != -1 and previous_page_num != page_num:
-    current_theme_label = notebook.get_tab_label_text(page)
-    settings = Gtk.Settings.get_default()
-    settings.set_property("gtk-theme-name", current_theme_label)
-    os.system(f"gsettings set org.gnome.desktop.interface gtk-theme {current_theme_label}")
-    print("["+formatted_datetime+"]", "[INFO]", f"GTK Theme Changed to {current_theme_label}")
-    with open(applied_theme, "w") as file:
-      file.write(current_theme_label)
-  previous_page_num = page_num
+      current_theme_label = notebook.get_tab_label_text(page)
+      settings = Gtk.Settings.get_default()
+      if settings.get_property("gtk-theme-name") != current_theme_label:
+          settings.set_property("gtk-theme-name", current_theme_label)
+          os.system(f"gsettings set org.gnome.desktop.interface gtk-theme '{current_theme_label}'")
+          print("[" + formatted_datetime + "]", "[INFO]", f"GTK Theme Changed to {current_theme_label}")
+          Notify.init("Rice Manager")  # Initialize the Notify module
+          notification = Notify.Notification.new(
+            f"{current_theme_label} Theme Applied!",
+            "",
+          )
+          notification.set_urgency(Notify.Urgency.NORMAL)
+          notification.set_timeout(2000)  # Set the notification timeout (in milliseconds)
+          notification.show()
+          with open(applied_theme, "w") as file:
+              file.write(current_theme_label)
+
+  previous_page_num = page_num  # Update previous_page_num with the current page number
+
 
 def apply_css():
     css_provider = Gtk.CssProvider()
@@ -51,14 +64,13 @@ def configure_header_bar(self):
   hb.set_show_close_button(True)
   hb.props.title = "Rice Manager"
   self.set_titlebar(hb)
+  about_button = create_about_button(self)
+  hb.pack_end(about_button)
   return hb
 
 def get_current_theme():
     settings = Gtk.Settings.get_default()
     return settings.get_property("gtk-theme-name")
-
-def set_current_theme_page(notebook, current_theme_index):
-    notebook.set_current_page(current_theme_index)
 
 def list_gtk_themes():
     builtin_themes = [
@@ -94,6 +106,18 @@ def list_gtk_themes():
 
 #if __name__ == "__main__":
   #print("Available themes: %s" % ", ".join(list_gtk_themes()))
+
+def on_about_button_clicked(self, button):
+  show_about_dialog(self)
+
+def create_about_button(self):
+  icon_name = "application-menu"
+  themed_icon = Gio.ThemedIcon.new(icon_name)
+  image = Gtk.Image.new_from_gicon(themed_icon, Gtk.IconSize.BUTTON)
+  about_button = Gtk.Button()
+  about_button.set_image(image)
+  about_button.connect("clicked", on_about_button_clicked, about_button)
+  return about_button
 
 def show_about_dialog(self):
   about_dialog = Gtk.AboutDialog()
@@ -132,6 +156,8 @@ class MainMenu(Gtk.Window):
     self.set_size_request(800, 500)
     self.set_border_width(5)
     hb = configure_header_bar(self)
+    global previous_page_num
+    previous_page_num = -1
     themes_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
     self.add(themes_box)
     notebook = Gtk.Notebook()
@@ -152,11 +178,6 @@ class MainMenu(Gtk.Window):
     rices_button.set_tooltip_text("View Your Rices")
     rices_button.connect("clicked", self.on_rices_click)
     hb.pack_start(rices_button)
-
-    about_button = Gtk.Button(label="☰")
-    about_button.override_font(Pango.font_description_from_string("Sans Serif 14"))
-    about_button.connect("clicked", self.on_about_button_clicked)
-    hb.pack_end(about_button)
     themes_box.pack_start(notebook, True, True, 0)
 
     available_themes = list_gtk_themes()
@@ -198,9 +219,6 @@ class MainMenu(Gtk.Window):
     if current_theme_index is not None:
         GLib.idle_add(set_current_theme_page, notebook, current_theme_index)
     notebook.connect("switch-page", on_theme_switch)
-
-  def on_about_button_clicked(self, button):
-    show_about_dialog(self)
 
   def on_add_rice_click(self, button):
     global last_window_position
@@ -250,23 +268,30 @@ class AddRices(Gtk.Window):
     # Create a box to hold the buttons
     button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
     grid.attach(button_box, 0, 0, 1, 1)
+    button_box.set_halign(Gtk.Align.CENTER)
 
     icon_path = "icons/rice-manager.png"
     Gtk.Window.set_default_icon_from_file(icon_path)
 
     # add button
-    plus_button = Gtk.Button(label="+")
-    plus_button.set_tooltip_text("Add a Dotfile Folder")
-    plus_button.override_font(Pango.font_description_from_string("Sans Serif 18"))
+    icon_name = "list-add"
+    themed_icon = Gio.ThemedIcon.new(icon_name)
+    image = Gtk.Image.new_from_gicon(themed_icon, Gtk.IconSize.BUTTON)
+    plus_button = Gtk.Button()
+    plus_button.set_name("plus-button")
+    plus_button.set_image(image)
     plus_button.connect("clicked", self.on_plus_click)
     button_box.pack_start(
         plus_button, False, False, 0
     )  # Add the "+" button to the button box
 
     # minus button
-    minus_button = Gtk.Button(label="-")
-    minus_button.set_tooltip_text("Remove Selected Dotfile Folder")
-    minus_button.override_font(Pango.font_description_from_string("Sans Serif 18"))
+    icon_name = "list-remove"
+    themed_icon = Gio.ThemedIcon.new(icon_name)
+    image = Gtk.Image.new_from_gicon(themed_icon, Gtk.IconSize.BUTTON)
+    minus_button = Gtk.Button()
+    minus_button.set_name("minus-button")
+    minus_button.set_image(image)
     minus_button.connect("clicked", self.on_minus_click)
     button_box.pack_start(
         minus_button, False, False, 0
@@ -274,6 +299,7 @@ class AddRices(Gtk.Window):
 
     # save button
     save_button = Gtk.Button(label="Save")
+    save_button.set_name("save-button")
     save_button.set_tooltip_text("Save Rice")
     save_button.connect("clicked", self.on_save_click)
     button_box.pack_end(
@@ -285,11 +311,6 @@ class AddRices(Gtk.Window):
     menu_button.set_tooltip_text("Back to the Main Menu")
     menu_button.connect("clicked", self.on_menu_click)
     hb.pack_start(menu_button)
-
-    about_button = Gtk.Button(label="☰")
-    about_button.override_font(Pango.font_description_from_string("Sans Serif 14"))
-    about_button.connect("clicked", self.on_about_button_clicked)
-    hb.pack_end(about_button)
 
     # Create a scrolled window
     scrolled_window = Gtk.ScrolledWindow()
@@ -318,9 +339,6 @@ class AddRices(Gtk.Window):
     self.entry.set_max_length(21)
     button_box.pack_end(self.entry, False, False, 0)
     self.entry.connect("button-press-event", self.on_entry_button_press)
-
-  def on_about_button_clicked(self, button):
-    show_about_dialog(self)
 
   def on_entry_button_press(self, entry, event):
       entry.select_region(0, -1)
@@ -462,18 +480,10 @@ class ViewRices(Gtk.Window):
     menu_button.connect("clicked", self.on_menu_click)
     hb.pack_start(menu_button)
 
-    about_button = Gtk.Button(label="☰")
-    about_button.override_font(Pango.font_description_from_string("Sans Serif 14"))
-    about_button.connect("clicked", self.on_about_button_clicked)
-    hb.pack_end(about_button)
-
   def on_remove_symlink_clicked(self, checkbox):
     state = checkbox.get_active()
     self.removing_symlinks = state
 
-  def on_about_button_clicked(self, button):
-    show_about_dialog(self)
-      
   def update_notebook(self):
     # Clear the notebook
     num_pages = self.notebook.get_n_pages()
@@ -593,16 +603,14 @@ class ViewRices(Gtk.Window):
       with open(applied_rice, "w") as file:
         file.write(rice_name)
 
-    dialog = Gtk.MessageDialog(
-      transient_for=self,
-      flags=0,
-      message_type=Gtk.MessageType.INFO,
-      buttons=Gtk.ButtonsType.OK,
-      text="Rice Applied",
+    Notify.init("Rice Manager")  # Initialize the Notify module
+    notification = Notify.Notification.new(
+      f"{rice_name} Rice Applied!",
+      "",
     )
-    dialog.format_secondary_text("All dotfiles have been applied.")
-    dialog.run()
-    dialog.destroy()
+    notification.set_urgency(Notify.Urgency.NORMAL)
+    notification.set_timeout(2000)  # Set the notification timeout (in milliseconds)
+    notification.show()
 
   def on_remove_click(self, button, file_path, dotfile_data):
     dialog = Gtk.MessageDialog(
@@ -628,6 +636,16 @@ class ViewRices(Gtk.Window):
             # Remove the JSON file
             os.remove(file_path)
             print("["+formatted_datetime+"]", "[INFO]", f" Removed: {file_path}")
+            current_page = self.notebook.get_current_page()
+            rice_name = self.notebook.get_tab_label_text(self.notebook.get_nth_page(current_page))
+            Notify.init("Rice Manager")  # Initialize the Notify module
+            notification = Notify.Notification.new(
+              f"{rice_name} Rice Removed!",
+              "",
+            )
+            notification.set_urgency(Notify.Urgency.NORMAL)
+            notification.set_timeout(2000)  # Set the notification timeout (in milliseconds)
+            notification.show()
             with open(applied_rice, "w") as file:
               file.write("")
             with open(applied_names, "w") as file:
