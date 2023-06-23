@@ -574,7 +574,7 @@ class ViewRices(Gtk.Window):
 
   def on_apply_click(self, button, file_path):
     if not os.path.isfile(applied_names):
-        with open(paths_path, "w"):
+        with open(applied_names, "w") as file:
 	        file.write("")
         pass  
     with open(applied_names, "r") as file:
