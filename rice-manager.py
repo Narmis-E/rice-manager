@@ -2,6 +2,7 @@ import os
 import json
 import warnings
 import datetime
+import configparser
 
 import gi
 gi.require_version("Gtk", "3.0")
@@ -16,6 +17,8 @@ last_window_position = None
 applied_names = os.path.expanduser("~/.local/share/rice-manager/paths.txt")
 applied_rice = os.path.expanduser("~/.local/share/rice-manager/rice.txt")
 applied_theme = os.path.expanduser("~/.local/share/rice-manager/theme.txt")
+gtk3_settings = os.path.expanduser("~/.config/gtk-3.0/settings.ini")
+gtk4_settings = os.path.expanduser("~/.config/gtk-4.0/settings.ini")
 
 def get_current_rice(self):
   with open(applied_rice, "r") as file:
@@ -35,19 +38,25 @@ def on_theme_switch(notebook, page, page_num):
       current_theme_label = notebook.get_tab_label_text(page)
       settings = Gtk.Settings.get_default()
       if settings.get_property("gtk-theme-name") != current_theme_label:
-          settings.set_property("gtk-theme-name", current_theme_label)
-          os.system(f"gsettings set org.gnome.desktop.interface gtk-theme '{current_theme_label}'")
-          print("[" + formatted_datetime + "]", "[INFO]", f"GTK Theme Changed to {current_theme_label}")
-          Notify.init("Rice Manager")  # Initialize the Notify module
-          notification = Notify.Notification.new(
-            f"{current_theme_label} Theme Applied!",
-            "",
-          )
-          notification.set_urgency(Notify.Urgency.NORMAL)
-          notification.set_timeout(2000)  # Set the notification timeout (in milliseconds)
-          notification.show()
-          with open(applied_theme, "w") as file:
-              file.write(current_theme_label)
+        config = configparser.ConfigParser()
+        config.read(gtk3_settings)
+        config.set("Settings", "gtk-theme-name", current_theme_label)
+        with open(gtk3_settings, "w") as configfile:
+          config.write(configfile)
+        settings.set_property("gtk-theme-name", current_theme_label)
+        os.system(f"gsettings set org.gnome.desktop.interface gtk-theme '{current_theme_label}'")
+        Gio.Settings.sync()
+        print("[" + formatted_datetime + "]", "[INFO]", f"GTK Theme Changed to {current_theme_label}")
+        Notify.init("Rice Manager")  # Initialize the Notify module
+        notification = Notify.Notification.new(
+          f"{current_theme_label} Theme Applied!",
+          "",
+        )
+        notification.set_urgency(Notify.Urgency.NORMAL)
+        notification.set_timeout(2000)  # Set the notification timeout (in milliseconds)
+        notification.show()
+        with open(applied_theme, "w") as file:
+          file.write(current_theme_label)
 
   previous_page_num = page_num  # Update previous_page_num with the current page number
 
