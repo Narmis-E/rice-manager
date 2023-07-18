@@ -1,7 +1,7 @@
 # Rice Manager: Manage and Apply Rices
 
 <p align="center">
-  <img width="150" src="myapp.png">
+  <img width="150" src="rice_manager/data/icons/rice-manager.png">
 </p>
 
 Rice Manager is a GTK3 dotfile management tool for Linux rices. It allows you to add, remove, and apply rices on the fly with a straightforward interface.
