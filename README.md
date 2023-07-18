@@ -41,7 +41,6 @@ If you encounter any bugs, please create an issue so I can fix it or make a feat
 ### Todo:
 - [x] Add a tickbox for removing symlinked rice files on the "View Rice" screen
 - [x] Add a GTK_THEME selector to the main menu for quick theme switching
-- [ ] Add command-line arguments for Rice Manager
 - [ ] Add rices to the main menu
 - [ ] Add a duplicate rice button
 - [ ] Add Flatpak package support or support for other package management systems
