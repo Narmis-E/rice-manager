@@ -133,7 +133,7 @@ def show_about_dialog(self):
   about_dialog.set_transient_for(self.get_toplevel())
   about_dialog.set_modal(True)
   about_dialog.set_program_name("rice-manager")
-  about_dialog.set_version("1.1.0")
+  about_dialog.set_version("1.1.2")
   about_dialog.set_authors(["narmis"])
   about_dialog.set_copyright("© 2023 narmis")
   license_type = (
