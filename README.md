@@ -2,7 +2,7 @@
   <img src="rice_manager/data/icons/rice-manager.png" alt="Awesome Rices logo" width="150" style="margin-bottom: 30px;">
   <h1 style="font-size: 32px; border: none; line-height: 0; font-weight: bold">Rice Manager</h1>
   <h5 align="center">
-    <a href="https://github.com/Narmis-E/rice-manager#install">Install</a>
+    <a href="https://github.com/Narmis-E/rice-manager#traditional-install">Install</a>
     ·
     <a href="https://github.com/Narmis-E/rice-manager#todo">Todo</a>
   </h5>
