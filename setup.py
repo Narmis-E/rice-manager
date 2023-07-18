@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
   name="rice_manager",
-  version="1.1.1",
+  version="1.1.2",
   description="GTK3 Dotfile Management Tool for Linux Rices",
   author="narmis",
   author_email="narmisecurb@gmail.com",
