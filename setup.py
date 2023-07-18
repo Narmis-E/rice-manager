@@ -9,6 +9,9 @@ setup(
   url="https://github.com/narmis-e/rice-manager",
   packages=find_packages(),
   include_package_data=True,
+  package_data={
+    'rice_manager': ['data/*'] 
+  },
   install_requires=[
     "PyGObject",
     "python-dateutil",
