@@ -65,7 +65,7 @@ class MainMenu(Gtk.Window):
       page_box.pack_start(grid, True, True, 0)
 
       title = Gtk.Label(label="Rice Manager")
-      title.override_font(Pango.font_description_from_string("Sans Serif 17"))
+      title.override_font(Pango.font_description_from_string(f"{current_font} 17"))
       image = Gtk.Image()
       image.set_from_file(os.path.join(package_dir, 'data/icons/rice-manager-translucent.png'))
 
