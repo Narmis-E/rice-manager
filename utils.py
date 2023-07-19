@@ -20,6 +20,10 @@ applied_rice = os.path.expanduser("~/.local/share/rice-manager/rice.txt")
 applied_theme = os.path.expanduser("~/.local/share/rice-manager/theme.txt")
 gtk3_settings = os.path.expanduser("~/.config/gtk-3.0/settings.ini")
 gtk4_settings = os.path.expanduser("~/.config/gtk-4.0/settings.ini")
+settings = Gtk.Settings.get_default()
+gsettings = Gio.Settings.new('org.gnome.desktop.interface')
+current_font = gsettings.get_string("font-name")
+current_font = current_font[:-3]
 
 def apply_css():
   css_path = './data/css/style.css'
@@ -45,7 +49,6 @@ def on_theme_switch(notebook, page, page_num):
     pass
   if previous_page_num != -1 and previous_page_num != page_num:
     current_theme_label = notebook.get_tab_label_text(page)
-    settings = Gtk.Settings.get_default()
     if settings.get_property("gtk-theme-name") != current_theme_label:
       config = configparser.ConfigParser()
       config.read(gtk3_settings)
@@ -78,7 +81,6 @@ def configure_header_bar(self):
   return hb
 
 def get_current_theme():
-  settings = Gtk.Settings.get_default()
   return settings.get_property("gtk-theme-name")
 
 def list_gtk_themes():
