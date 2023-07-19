@@ -1,2 +1,6 @@
 rice_manager.egg-info/
 dist/
+.DirIcon
+usr/
+myapp.png
+rice-manager.desktop
