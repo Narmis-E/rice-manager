@@ -16,6 +16,10 @@
     <br>
 </div>
 
+> [!WARNING]
+> - This PoS software is deprecated and kinda bloat. I just symlink my dots once and never need to touch them again.
+> - I won't be updating rice-manager, hopefully someday I get the motivation to make a tui version, which is no-frills and is actually nice to use. Thanks to those who have tried rice manager.
+
 Rice Manager streamlines the process of managing and switching between dotfile configurations on Linux. It follows the ricing philosophy of maintaining all configs in a central location and linking them together, from one place.
 
 ![rice-manager-showcase](https://github.com/Narmis-E/rice-manager/assets/109248529/e8284d7f-747f-46d9-bb4d-63db86a54924)
